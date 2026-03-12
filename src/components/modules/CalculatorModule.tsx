@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Calculator, Delete } from 'lucide-react';
 
 export function CalculatorModule() {
@@ -34,6 +35,14 @@ export function CalculatorModule() {
     setWaitingForOperand(false);
   };
 
+  const backspace = () => {
+    if (display.length > 1) {
+      setDisplay(display.slice(0, -1));
+    } else {
+      setDisplay('0');
+    }
+  };
+
   const performOperation = (nextOperation: string) => {
     const inputValue = parseFloat(display);
 
@@ -56,17 +65,28 @@ export function CalculatorModule() {
         case '/':
           newValue = currentValue / inputValue;
           break;
-        case '=':
-          newValue = inputValue;
-          break;
       }
 
       setDisplay(String(newValue));
       setPreviousValue(newValue);
     }
 
-    setWaitingForOperand(true);
-    setOperation(nextOperation);
+    if (nextOperation === '=') {
+      setPreviousValue(null);
+      setOperation(null);
+      setWaitingForOperand(false);
+    } else {
+      setWaitingForOperand(true);
+      setOperation(nextOperation);
+    }
+  };
+
+  const handleDisplayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers, decimal point, and minus sign
+    if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+      setDisplay(value || '0');
+    }
   };
 
   const buttonClass = "h-12 text-lg";
@@ -84,7 +104,12 @@ export function CalculatorModule() {
       <CardContent className="space-y-3">
         {/* Display */}
         <div className="bg-muted rounded-lg p-4 text-right">
-          <div className="text-3xl font-mono break-all">{display}</div>
+          <Input
+            type="text"
+            value={display}
+            onChange={handleDisplayChange}
+            className="text-3xl font-mono break-all w-full text-right bg-transparent border-none p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
           {operation && previousValue !== null && (
             <div className="text-xs text-muted-foreground mt-1">
               {previousValue} {operation}

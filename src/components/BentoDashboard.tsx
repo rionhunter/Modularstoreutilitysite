@@ -8,6 +8,7 @@ import { QuoteSystemModule } from './modules/QuoteSystemModule';
 import { StockTrackerModule } from './modules/StockTrackerModule';
 import { BalanceCalculatorModule } from './modules/BalanceCalculatorModule';
 import { CalculatorModule } from './modules/CalculatorModule';
+import { SpecialsModule } from './modules/SpecialsModule';
 import { GripVertical } from 'lucide-react';
 
 interface ModulePosition {
@@ -56,6 +57,8 @@ const DraggableModule = ({ module, index, moveModule }: DraggableModuleProps) =>
         return <BalanceCalculatorModule />;
       case 'calculator':
         return <CalculatorModule />;
+      case 'specials':
+        return <SpecialsModule />;
       default:
         return null;
     }

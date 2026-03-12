@@ -831,6 +831,12 @@ export function StockTakePage() {
               <p className="text-sm text-muted-foreground mt-1">
                 Choose one or more bays to scan in sequence
               </p>
+              {/* Debug info */}
+              <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                <div>Total bays loaded: {bays.length}</div>
+                <div>Selected bay IDs: {selectedBayIds.size}</div>
+                <div>Computed selected bays: {selectedBays.length}</div>
+              </div>
             </div>
             {selectedBays.length > 0 && (
               <div className="flex gap-2">
@@ -841,16 +847,25 @@ export function StockTakePage() {
                 {scannedProducts.length > 0 && (
                   <Button 
                     onClick={() => {
+                      if (!confirm('This will clear all scanned data and start fresh. Continue?')) {
+                        return;
+                      }
                       setScannedProducts([]);
                       setCurrentBayIndex(0);
                       setCurrentShelf(0);
                       setCurrentColumn(0);
                       setCurrentTray(0);
                       setInTrayMode(false);
+                      setInDrawerMode(false);
+                      setCurrentDrawerRow(0);
+                      setCurrentDrawerCol(0);
                       localStorage.removeItem('stock-take-scanned-products');
                       localStorage.removeItem('stock-take-position');
                       toast.success('Ready to start new scan');
-                      startScanning();
+                      // Start scanning in next tick after state has updated
+                      setTimeout(() => {
+                        startScanning();
+                      }, 0);
                     }}
                     variant="outline"
                     size="lg"
@@ -893,10 +908,12 @@ export function StockTakePage() {
                   >
                     <CardHeader className="py-3">
                       <div className="flex items-center gap-3">
-                        <Checkbox 
-                          checked={selectedBayIds.has(bay.id)}
-                          onCheckedChange={() => toggleBaySelection(bay.id)}
-                        />
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <Checkbox 
+                            checked={selectedBayIds.has(bay.id)}
+                            onCheckedChange={() => toggleBaySelection(bay.id)}
+                          />
+                        </div>
                         <Box className="h-4 w-4" />
                         <div className="flex-1">
                           <CardTitle className="text-base">{bay.name}</CardTitle>

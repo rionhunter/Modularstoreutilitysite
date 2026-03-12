@@ -11,7 +11,7 @@ interface CashEntry {
   count: number;
 }
 
-const DENOMINATIONS = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.25, 0.1, 0.05];
+const DENOMINATIONS = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05];
 
 export function CashCalculatorModule() {
   const [float, setFloat] = useState<number>(0);

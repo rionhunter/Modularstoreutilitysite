@@ -5,7 +5,8 @@ export type ModuleType =
   | 'quote-system'
   | 'stock-tracker'
   | 'balance-calculator'
-  | 'calculator';
+  | 'calculator'
+  | 'specials';
 
 export interface Module {
   id: ModuleType;

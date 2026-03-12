@@ -9,6 +9,122 @@ import { Badge } from '../ui/badge';
 import { Package, Plus, Trash2, Search, MapPin, LayoutGrid, Scan } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
+// Visual Location Grid Component
+function LocationGrid({ 
+  bayData, 
+  highlightShelf, 
+  highlightColumn, 
+  highlightTray 
+}: { 
+  bayData: BayLocation['bayData']; 
+  highlightShelf?: number; 
+  highlightColumn?: number;
+  highlightTray?: number;
+}) {
+  const getSlot = (row: number, col: number) => {
+    return bayData.slots?.find(s => s.row === row && s.col === col);
+  };
+
+  return (
+    <div className="inline-flex flex-col gap-0.5 p-2 bg-muted/30 rounded border">
+      {Array.from({ length: bayData.shelves }, (_, shelfIdx) => (
+        <div key={shelfIdx} className="flex gap-0.5">
+          {Array.from({ length: bayData.columns }, (_, colIdx) => {
+            const slot = getSlot(shelfIdx, colIdx);
+            const isHighlighted = 
+              highlightShelf === shelfIdx && 
+              highlightColumn === colIdx;
+            
+            if (!slot || slot.type === 'inactive') {
+              return (
+                <div
+                  key={colIdx}
+                  className="w-6 h-6 bg-muted border border-border/50 rounded-sm opacity-30"
+                  title="Inactive"
+                />
+              );
+            }
+
+            if (slot.type === 'tray') {
+              // Tray slots are shown as a column of thinner boxes
+              return (
+                <div
+                  key={colIdx}
+                  className={`w-6 flex flex-col gap-px ${
+                    isHighlighted ? 'ring-2 ring-primary rounded-sm' : ''
+                  }`}
+                  title={`Tray (${slot.traySlots} slots)`}
+                >
+                  {Array.from({ length: slot.traySlots || 1 }, (_, trayIdx) => (
+                    <div
+                      key={trayIdx}
+                      className={`h-1.5 rounded-sm border ${
+                        isHighlighted && highlightTray === trayIdx
+                          ? 'bg-primary border-primary'
+                          : 'bg-background border-border'
+                      }`}
+                    />
+                  ))}
+                </div>
+              );
+            }
+
+            // Single slot
+            return (
+              <div
+                key={colIdx}
+                className={`w-6 h-6 rounded-sm border transition-colors ${
+                  isHighlighted
+                    ? 'bg-primary border-primary'
+                    : 'bg-background border-border hover:bg-accent'
+                }`}
+                title="Single slot"
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Visual Drawer Grid Component
+function DrawerGrid({ 
+  rows, 
+  columns, 
+  highlightRow, 
+  highlightColumn 
+}: { 
+  rows: number;
+  columns: number;
+  highlightRow?: number; 
+  highlightColumn?: number;
+}) {
+  return (
+    <div className="inline-flex flex-col gap-0.5 p-2 bg-muted/30 rounded border">
+      {Array.from({ length: rows }, (_, rowIdx) => (
+        <div key={rowIdx} className="flex gap-0.5">
+          {Array.from({ length: columns }, (_, colIdx) => {
+            const isHighlighted = highlightRow === rowIdx && highlightColumn === colIdx;
+            
+            return (
+              <div
+                key={colIdx}
+                className={`w-6 h-6 rounded-sm border transition-colors ${
+                  isHighlighted
+                    ? 'bg-primary border-primary'
+                    : 'bg-background border-border hover:bg-accent'
+                }`}
+                title={`Drawer slot R${rowIdx + 1}C${colIdx + 1}`}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface StockItem {
   id: string;
   name: string;
@@ -479,18 +595,39 @@ export function StockTrackerModule() {
             </div>
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {Array.from(barcodeLocationMap.entries()).map(([barcode, scans]) => (
-                <div key={barcode} className="p-2 bg-background border rounded text-sm space-y-1">
+                <div key={barcode} className="p-2 bg-background border rounded text-sm space-y-2">
                   <div className="font-mono break-all">{barcode}</div>
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    {scans.map((scan, idx) => (
-                      <div key={idx} className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {scan.drawer 
-                          ? `${scan.bayName} - Drawer R${scan.drawer.row + 1}C${scan.drawer.col + 1}`
-                          : `${scan.bayName} - S${scan.shelf + 1}C${scan.column + 1}${scan.tray !== undefined ? `T${scan.tray + 1}` : ''}`
-                        }
-                      </div>
-                    ))}
+                  <div className="text-xs text-muted-foreground space-y-2">
+                    {scans.map((scan, idx) => {
+                      const bay = bayLocations.find(b => b.id === scan.bayId);
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {scan.drawer 
+                              ? `${scan.bayName} - Drawer R${scan.drawer.row + 1}C${scan.drawer.col + 1}`
+                              : `${scan.bayName} - S${scan.shelf + 1}C${scan.column + 1}${scan.tray !== undefined ? `T${scan.tray + 1}` : ''}`
+                            }
+                          </div>
+                          {bay && scan.drawer && bay.bayData.hasDrawers && (
+                            <DrawerGrid
+                              rows={bay.bayData.drawerRows || 1}
+                              columns={bay.bayData.drawerColumns || 1}
+                              highlightRow={scan.drawer.row}
+                              highlightColumn={scan.drawer.col}
+                            />
+                          )}
+                          {bay && !scan.drawer && (
+                            <LocationGrid
+                              bayData={bay.bayData}
+                              highlightShelf={scan.shelf}
+                              highlightColumn={scan.column}
+                              highlightTray={scan.tray}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -532,6 +669,30 @@ export function StockTrackerModule() {
                       <MapPin className="h-3 w-3" />
                       {item.location}
                     </div>
+                    
+                    {/* Visual Location Grid */}
+                    {item.bayId && (() => {
+                      const bay = bayLocations.find(b => b.id === item.bayId);
+                      if (!bay) return null;
+                      
+                      const shelf = item.shelf ? parseInt(item.shelf) - 1 : undefined;
+                      const column = item.column ? parseInt(item.column) - 1 : undefined;
+                      const tray = item.tray ? parseInt(item.tray) - 1 : undefined;
+                      
+                      return (
+                        <div className="mt-2 pt-2 border-t">
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Location Map:
+                          </div>
+                          <LocationGrid
+                            bayData={bay.bayData}
+                            highlightShelf={shelf}
+                            highlightColumn={column}
+                            highlightTray={tray}
+                          />
+                        </div>
+                      );
+                    })()}
                   </div>
                   <Button
                     variant="ghost"

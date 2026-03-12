@@ -7,6 +7,7 @@ import {
   Package,
   Scale,
   Wallet,
+  Tag,
 } from 'lucide-react';
 
 // Import module components
@@ -17,6 +18,7 @@ import { QuoteSystemModule } from '../components/modules/QuoteSystemModule';
 import { StockTrackerModule } from '../components/modules/StockTrackerModule';
 import { BalanceCalculatorModule } from '../components/modules/BalanceCalculatorModule';
 import { CalculatorModule } from '../components/modules/CalculatorModule';
+import { SpecialsModule } from '../components/modules/SpecialsModule';
 
 /**
  * Core Module Definitions
@@ -298,6 +300,43 @@ export const CORE_MODULES: ModuleDefinition[] = [
       },
     },
     component: CalculatorModule,
+  },
+  {
+    metadata: {
+      id: 'specials',
+      version: '1.0.0',
+      title: 'Specials Manager',
+      description: 'Manage promotional specials with POS codes and automatic expiration',
+      author: 'System',
+      category: 'sales',
+      icon: Tag,
+      tags: ['specials', 'promotions', 'discounts', 'pos', 'sales'],
+      configSchema: {
+        fields: [
+          {
+            key: 'showExpiredSpecials',
+            label: 'Show Expired Specials',
+            type: 'boolean',
+            defaultValue: false,
+            description: 'Display expired specials in the list',
+          },
+          {
+            key: 'expiryWarningDays',
+            label: 'Expiry Warning (days)',
+            type: 'number',
+            defaultValue: 3,
+            min: 1,
+            max: 30,
+            description: 'Show warning when special expires within this many days',
+          },
+        ],
+      },
+      defaultConfig: {
+        showExpiredSpecials: false,
+        expiryWarningDays: 3,
+      },
+    },
+    component: SpecialsModule,
   },
 ];
 

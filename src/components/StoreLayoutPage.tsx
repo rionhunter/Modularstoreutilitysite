@@ -106,6 +106,20 @@ export function StoreLayoutPage() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Count scanned products
+  const scannedProductCount = (() => {
+    const saved = localStorage.getItem('stock-take-scanned-products');
+    if (saved) {
+      try {
+        const products = JSON.parse(saved);
+        return Array.isArray(products) ? products.length : 0;
+      } catch {
+        return 0;
+      }
+    }
+    return 0;
+  })();
+
   const saveToLocalStorage = (updatedLayout: StoreLayout) => {
     localStorage.setItem('store-layout-full', JSON.stringify(updatedLayout));
     // Also save old format for backwards compatibility
@@ -514,14 +528,21 @@ export function StoreLayoutPage() {
   };
 
   const exportLayout = () => {
-    const dataStr = JSON.stringify(storeLayout, null, 2);
+    // Include scanned stock data in the export
+    const scannedProducts = localStorage.getItem('stock-take-scanned-products');
+    const exportData = {
+      ...storeLayout,
+      scannedProducts: scannedProducts ? JSON.parse(scannedProducts) : []
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `store-layout-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
-    toast.success('Layout exported');
+    toast.success('Layout and scanned stock exported');
   };
 
   const importLayout = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -545,6 +566,16 @@ export function StoreLayoutPage() {
           };
           setStoreLayout(newLayout);
           saveToLocalStorage(newLayout);
+          
+          // Import scanned products if they exist
+          if (imported.scannedProducts && Array.isArray(imported.scannedProducts)) {
+            localStorage.setItem('stock-take-scanned-products', JSON.stringify(imported.scannedProducts));
+            // Dispatch event so Stock Tracker updates
+            window.dispatchEvent(new Event('stock-take-updated'));
+            toast.success('Layout and scanned stock imported successfully');
+          } else {
+            toast.success('Layout imported successfully');
+          }
         } else if (Array.isArray(imported)) {
           // Old format - just elements array
           const newLayout: StoreLayout = {
@@ -557,11 +588,10 @@ export function StoreLayoutPage() {
           };
           setStoreLayout(newLayout);
           saveToLocalStorage(newLayout);
+          toast.success('Layout imported successfully');
         } else {
           throw new Error('Invalid format');
         }
-        
-        toast.success('Layout imported successfully');
       } catch (error) {
         toast.error('Invalid layout file');
       }
@@ -1369,6 +1399,7 @@ export function StoreLayoutPage() {
               <div className="text-xs text-muted-foreground space-y-1">
                 <div>Grid: {storeLayout.gridWidth} × {storeLayout.gridHeight} cells</div>
                 <div>Elements: {layout.length} total ({bays.length} bays)</div>
+                <div>Scanned Products: {scannedProductCount}</div>
               </div>
             </div>
 

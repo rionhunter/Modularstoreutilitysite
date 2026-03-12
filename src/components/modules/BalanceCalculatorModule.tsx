@@ -5,12 +5,12 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
-import { DollarSign, Plus, Minus, AlertTriangle, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { Scale, Plus, AlertTriangle, X, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
 interface BalanceEntry {
   id: string;
-  type: 'incoming' | 'outgoing';
+  column: 'left' | 'right';
   amount: number;
   description: string;
   timestamp: number;
@@ -21,38 +21,65 @@ export function BalanceCalculatorModule() {
     const saved = localStorage.getItem('balance-entries');
     return saved ? JSON.parse(saved) : [];
   });
-  const [newAmount, setNewAmount] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [entryType, setEntryType] = useState<'incoming' | 'outgoing'>('incoming');
+  const [leftAmount, setLeftAmount] = useState('');
+  const [leftDescription, setLeftDescription] = useState('');
+  const [rightAmount, setRightAmount] = useState('');
+  const [rightDescription, setRightDescription] = useState('');
 
   useEffect(() => {
     localStorage.setItem('balance-entries', JSON.stringify(entries));
   }, [entries]);
 
-  const addEntry = () => {
-    const amount = parseFloat(newAmount);
+  const addLeftEntry = () => {
+    const amount = parseFloat(leftAmount);
     if (isNaN(amount) || amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
 
-    if (!newDescription.trim()) {
+    if (!leftDescription.trim()) {
       toast.error('Please enter a description');
       return;
     }
 
     const newEntry: BalanceEntry = {
       id: Date.now().toString(),
-      type: entryType,
+      column: 'left',
       amount,
-      description: newDescription,
+      description: leftDescription,
       timestamp: Date.now(),
     };
 
     setEntries(prev => [newEntry, ...prev]);
-    setNewAmount('');
-    setNewDescription('');
-    toast.success(`${entryType === 'incoming' ? 'Incoming' : 'Outgoing'} amount added`);
+    setLeftAmount('');
+    setLeftDescription('');
+    toast.success('Left column entry added');
+  };
+
+  const addRightEntry = () => {
+    const amount = parseFloat(rightAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (!rightDescription.trim()) {
+      toast.error('Please enter a description');
+      return;
+    }
+
+    const newEntry: BalanceEntry = {
+      id: Date.now().toString(),
+      column: 'right',
+      amount,
+      description: rightDescription,
+      timestamp: Date.now(),
+    };
+
+    setEntries(prev => [newEntry, ...prev]);
+    setRightAmount('');
+    setRightDescription('');
+    toast.success('Right column entry added');
   };
 
   const deleteEntry = (id: string) => {
@@ -67,16 +94,19 @@ export function BalanceCalculatorModule() {
     }
   };
 
-  const totalIncoming = entries
-    .filter(e => e.type === 'incoming')
+  const leftTotal = entries
+    .filter(e => e.column === 'left')
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const totalOutgoing = entries
-    .filter(e => e.type === 'outgoing')
+  const rightTotal = entries
+    .filter(e => e.column === 'right')
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const balance = totalIncoming - totalOutgoing;
-  const hasDiscrepancy = balance !== 0;
+  const difference = leftTotal - rightTotal;
+  const hasDifference = Math.abs(difference) > 0.01;
+
+  const leftEntries = entries.filter(e => e.column === 'left');
+  const rightEntries = entries.filter(e => e.column === 'right');
 
   return (
     <Card>
@@ -84,10 +114,10 @@ export function BalanceCalculatorModule() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
+              <Scale className="h-5 w-5" />
               Balance Calculator
             </CardTitle>
-            <CardDescription>Track incoming and outgoing amounts</CardDescription>
+            <CardDescription>Compare two columns to find the difference</CardDescription>
           </div>
           {entries.length > 0 && (
             <Button variant="outline" size="sm" onClick={clearAll}>
@@ -99,184 +129,221 @@ export function BalanceCalculatorModule() {
       <CardContent className="space-y-4">
         {/* Balance Summary */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 border rounded-lg bg-green-500/5 border-green-500/20">
-            <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-400 mb-1">
+          <div className="p-3 border rounded-lg bg-blue-500/5 border-blue-500/20">
+            <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-400 mb-1">
               <TrendingUp className="h-3 w-3" />
-              <span>Incoming</span>
+              <span>Left Total</span>
             </div>
             <div className="text-xl tabular-nums">
-              ${totalIncoming.toFixed(2)}
+              ${leftTotal.toFixed(2)}
             </div>
           </div>
 
-          <div className="p-3 border rounded-lg bg-red-500/5 border-red-500/20">
-            <div className="flex items-center gap-2 text-xs text-red-700 dark:text-red-400 mb-1">
+          <div className="p-3 border rounded-lg bg-purple-500/5 border-purple-500/20">
+            <div className="flex items-center gap-2 text-xs text-purple-700 dark:text-purple-400 mb-1">
               <TrendingDown className="h-3 w-3" />
-              <span>Outgoing</span>
+              <span>Right Total</span>
             </div>
             <div className="text-xl tabular-nums">
-              ${totalOutgoing.toFixed(2)}
+              ${rightTotal.toFixed(2)}
             </div>
           </div>
 
           <div className={`p-3 border rounded-lg ${
-            hasDiscrepancy 
-              ? balance > 0 
-                ? 'bg-blue-500/5 border-blue-500/20' 
+            hasDifference 
+              ? difference > 0 
+                ? 'bg-green-500/5 border-green-500/20' 
                 : 'bg-orange-500/5 border-orange-500/20'
               : 'bg-muted/50'
           }`}>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              {hasDiscrepancy && <AlertTriangle className="h-3 w-3" />}
-              <span>Balance</span>
+              {hasDifference && <AlertTriangle className="h-3 w-3" />}
+              <span>Difference</span>
             </div>
             <div className={`text-xl tabular-nums ${
-              hasDiscrepancy 
-                ? balance > 0 
-                  ? 'text-blue-700 dark:text-blue-400' 
+              hasDifference 
+                ? difference > 0 
+                  ? 'text-green-700 dark:text-green-400' 
                   : 'text-orange-700 dark:text-orange-400'
                 : ''
             }`}>
-              ${Math.abs(balance).toFixed(2)}
-              {balance !== 0 && (
+              ${Math.abs(difference).toFixed(2)}
+              {difference !== 0 && (
                 <span className="text-xs ml-1">
-                  {balance > 0 ? 'over' : 'short'}
+                  {difference > 0 ? 'L' : 'R'}
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Add Entry Form */}
-        <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
-          <div>
-            <Label>Entry Type</Label>
-            <div className="flex gap-2 mt-1">
-              <Button
-                variant={entryType === 'incoming' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setEntryType('incoming')}
-                className="flex-1"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Incoming
-              </Button>
-              <Button
-                variant={entryType === 'outgoing' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setEntryType('outgoing')}
-                className="flex-1"
-              >
-                <Minus className="h-4 w-4 mr-2" />
-                Outgoing
-              </Button>
+        {/* Two Column Input */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Left Column */}
+          <div className="p-4 border rounded-lg bg-blue-500/5 border-blue-500/20 space-y-3">
+            <Label className="text-blue-700 dark:text-blue-400">Left Column</Label>
+            <div>
+              <Label htmlFor="left-amount" className="text-xs">Amount</Label>
+              <Input
+                id="left-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={leftAmount}
+                onChange={e => setLeftAmount(e.target.value)}
+                placeholder="0.00"
+                className="mt-1"
+                onKeyDown={e => e.key === 'Enter' && leftDescription && addLeftEntry()}
+              />
             </div>
+            <div>
+              <Label htmlFor="left-description" className="text-xs">Description</Label>
+              <Input
+                id="left-description"
+                value={leftDescription}
+                onChange={e => setLeftDescription(e.target.value)}
+                placeholder="Description..."
+                className="mt-1"
+                onKeyDown={e => e.key === 'Enter' && leftAmount && addLeftEntry()}
+              />
+            </div>
+            <Button onClick={addLeftEntry} size="sm" className="w-full">
+              <Plus className="h-3 w-3 mr-2" />
+              Add
+            </Button>
           </div>
 
-          <div>
-            <Label htmlFor="amount">Amount</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={newAmount}
-              onChange={e => setNewAmount(e.target.value)}
-              placeholder="0.00"
-              className="mt-1"
-            />
+          {/* Right Column */}
+          <div className="p-4 border rounded-lg bg-purple-500/5 border-purple-500/20 space-y-3">
+            <Label className="text-purple-700 dark:text-purple-400">Right Column</Label>
+            <div>
+              <Label htmlFor="right-amount" className="text-xs">Amount</Label>
+              <Input
+                id="right-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={rightAmount}
+                onChange={e => setRightAmount(e.target.value)}
+                placeholder="0.00"
+                className="mt-1"
+                onKeyDown={e => e.key === 'Enter' && rightDescription && addRightEntry()}
+              />
+            </div>
+            <div>
+              <Label htmlFor="right-description" className="text-xs">Description</Label>
+              <Input
+                id="right-description"
+                value={rightDescription}
+                onChange={e => setRightDescription(e.target.value)}
+                placeholder="Description..."
+                className="mt-1"
+                onKeyDown={e => e.key === 'Enter' && rightAmount && addRightEntry()}
+              />
+            </div>
+            <Button onClick={addRightEntry} size="sm" className="w-full">
+              <Plus className="h-3 w-3 mr-2" />
+              Add
+            </Button>
           </div>
-
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={newDescription}
-              onChange={e => setNewDescription(e.target.value)}
-              placeholder="Payment, sale, expense, etc."
-              className="mt-1"
-              onKeyDown={e => e.key === 'Enter' && addEntry()}
-            />
-          </div>
-
-          <Button onClick={addEntry} className="w-full">
-            Add Entry
-          </Button>
         </div>
 
-        {/* Entries List */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <Label>Entries ({entries.length})</Label>
-          </div>
-          <ScrollArea className="h-[300px] border rounded-lg">
-            {entries.length === 0 ? (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                No entries yet. Add incoming or outgoing amounts above.
-              </div>
-            ) : (
-              <div className="p-2 space-y-2">
-                {entries.map(entry => (
-                  <div
-                    key={entry.id}
-                    className={`flex items-start justify-between p-2 border rounded-lg ${
-                      entry.type === 'incoming' 
-                        ? 'bg-green-500/5 border-green-500/20' 
-                        : 'bg-red-500/5 border-red-500/20'
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {entry.type === 'incoming' ? (
-                          <TrendingUp className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
-                        )}
-                        <span className="text-sm">{entry.description}</span>
-                      </div>
-                      <div className={`font-mono text-sm mt-1 ${
-                        entry.type === 'incoming' 
-                          ? 'text-green-700 dark:text-green-400' 
-                          : 'text-red-700 dark:text-red-400'
-                      }`}>
-                        {entry.type === 'incoming' ? '+' : '-'}${entry.amount.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {new Date(entry.timestamp).toLocaleString()}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 flex-shrink-0"
-                      onClick={() => deleteEntry(entry.id)}
+        {/* Entries Lists in Two Columns */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Left Entries */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-xs">Left Entries ({leftEntries.length})</Label>
+            </div>
+            <ScrollArea className="h-[250px] border rounded-lg bg-blue-500/5 border-blue-500/20">
+              {leftEntries.length === 0 ? (
+                <div className="text-center py-8 text-xs text-muted-foreground">
+                  No entries yet
+                </div>
+              ) : (
+                <div className="p-2 space-y-2">
+                  {leftEntries.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="flex items-start justify-between p-2 border rounded-lg bg-background"
                     >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm truncate">{entry.description}</div>
+                        <div className="font-mono text-sm mt-1 text-blue-700 dark:text-blue-400">
+                          ${entry.amount.toFixed(2)}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 flex-shrink-0"
+                        onClick={() => deleteEntry(entry.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+
+          {/* Right Entries */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-xs">Right Entries ({rightEntries.length})</Label>
+            </div>
+            <ScrollArea className="h-[250px] border rounded-lg bg-purple-500/5 border-purple-500/20">
+              {rightEntries.length === 0 ? (
+                <div className="text-center py-8 text-xs text-muted-foreground">
+                  No entries yet
+                </div>
+              ) : (
+                <div className="p-2 space-y-2">
+                  {rightEntries.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="flex items-start justify-between p-2 border rounded-lg bg-background"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm truncate">{entry.description}</div>
+                        <div className="font-mono text-sm mt-1 text-purple-700 dark:text-purple-400">
+                          ${entry.amount.toFixed(2)}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 flex-shrink-0"
+                        onClick={() => deleteEntry(entry.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
         </div>
 
-        {hasDiscrepancy && (
+        {hasDifference && (
           <div className={`p-3 border rounded-lg flex items-start gap-2 ${
-            balance > 0 
-              ? 'bg-blue-500/10 border-blue-500/20' 
+            difference > 0 
+              ? 'bg-green-500/10 border-green-500/20' 
               : 'bg-orange-500/10 border-orange-500/20'
           }`}>
             <AlertTriangle className={`h-4 w-4 mt-0.5 ${
-              balance > 0 ? 'text-blue-600' : 'text-orange-600'
+              difference > 0 ? 'text-green-600' : 'text-orange-600'
             }`} />
             <div className="text-sm">
-              <div className={balance > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-orange-700 dark:text-orange-400'}>
-                Discrepancy Detected
+              <div className={difference > 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'}>
+                Difference Detected
               </div>
               <div className="text-muted-foreground mt-1">
-                {balance > 0 
-                  ? `There is $${balance.toFixed(2)} more incoming than outgoing.`
-                  : `There is $${Math.abs(balance).toFixed(2)} more outgoing than incoming.`
+                {difference > 0 
+                  ? `Left column is $${difference.toFixed(2)} higher than right column.`
+                  : `Right column is $${Math.abs(difference).toFixed(2)} higher than left column.`
                 }
               </div>
             </div>
