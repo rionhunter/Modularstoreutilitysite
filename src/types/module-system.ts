@@ -266,7 +266,7 @@ export class ModuleUtils {
    * Generate a unique instance ID
    */
   public static generateInstanceId(moduleId: string): string {
-    return `${moduleId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${moduleId}-${Date.now()}-${Math.random().toString(36).substring(2)}`;
   }
 
   /**

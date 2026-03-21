@@ -5,6 +5,7 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { RotateCcw, Trash2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
+import { parseTransactionInput, ParsedTransaction } from '../../utils/transactionParser';
 
 interface Category {
   id: string;
@@ -29,51 +30,16 @@ const PRESET_COLORS = [
 export function TransactionCalculatorModule() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [parsedPreview, setParsedPreview] = useState<{ category: string; amount: number } | null>(null);
-
-  const parseInput = (input: string): { category: string; amount: number } | null => {
-    if (!input.trim()) return null;
-
-    // Check if input is only numbers (default category case)
-    const numericOnly = /^[\d.]+$/.test(input.trim());
-    if (numericOnly) {
-      const amount = parseFloat(input.trim());
-      if (!isNaN(amount) && amount > 0) {
-        return { category: 'general', amount };
-      }
-      return null;
-    }
-
-    // Split input into chunks of consecutive letters and consecutive numbers
-    const chunks = input.match(/[a-zA-Z]+|[\d.]+/g);
-    
-    if (!chunks || chunks.length === 0) return null;
-
-    // Find number chunks and text chunks
-    const numberChunks = chunks.filter(chunk => /^[\d.]+$/.test(chunk));
-    const textChunks = chunks.filter(chunk => /^[a-zA-Z]+$/.test(chunk));
-
-    // Must have exactly one of each
-    if (numberChunks.length !== 1 || textChunks.length !== 1) {
-      return null;
-    }
-
-    const amount = parseFloat(numberChunks[0]);
-    const category = textChunks[0].toLowerCase();
-
-    if (isNaN(amount) || amount <= 0) return null;
-
-    return { category, amount };
-  };
+  const [parsedPreview, setParsedPreview] = useState<ParsedTransaction | null>(null);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    const parsed = parseInput(value);
+    const parsed = parseTransactionInput(value);
     setParsedPreview(parsed);
   };
 
   const handleSubmit = () => {
-    const parsed = parseInput(inputValue);
+    const parsed = parseTransactionInput(inputValue);
     
     if (!parsed) {
       toast.error('Invalid format', {

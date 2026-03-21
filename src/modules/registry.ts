@@ -341,10 +341,15 @@ export const CORE_MODULES: ModuleDefinition[] = [
 ];
 
 /**
- * Initialize the module registry with core modules
+ * Initialize the module registry with core modules.
+ * Safe to call multiple times — skips registration if the registry is already populated.
  */
 export function initializeModuleRegistry(): void {
   const registry = ModuleRegistry.getInstance();
+
+  if (registry.count() > 0) {
+    return;
+  }
 
   // Register all core modules
   CORE_MODULES.forEach(module => {

@@ -88,10 +88,19 @@ export function BalanceCalculatorModule() {
   };
 
   const clearAll = () => {
-    if (confirm('Clear all balance entries?')) {
-      setEntries([]);
-      toast.success('All entries cleared');
-    }
+    toast('Clear all balance entries?', {
+      action: {
+        label: 'Clear',
+        onClick: () => {
+          setEntries([]);
+          toast.success('All entries cleared');
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+    });
   };
 
   const leftTotal = entries
