@@ -65,7 +65,12 @@
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
         include: ['src/**/*.{ts,tsx}'],
-        exclude: ['src/components/ui/**', 'src/test/**', 'src/**/*.d.ts'],
+        exclude: [
+          'src/components/ui/**',
+          'src/test/**',
+          'src/**/*.d.ts',
+          'src/**/*.{test,spec}.{ts,tsx}',
+        ],
       },
     },
   });

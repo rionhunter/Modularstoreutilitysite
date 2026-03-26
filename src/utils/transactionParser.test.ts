@@ -25,9 +25,17 @@ describe('parseTransactionInput', () => {
       expect(parseTransactionInput('0')).toBeNull();
     });
 
-    it('returns null for negative-only number (no negation supported)', () => {
-      // '-150' contains a hyphen which is not alphanumeric, so no chunks found
+    it('returns null for negative-only number (hyphen is not a supported character)', () => {
       expect(parseTransactionInput('-150')).toBeNull();
+    });
+
+    it('returns null for a multi-dot numeric string like "1.2.3"', () => {
+      // Previously the permissive /^[\d.]+$/ regex accepted this; strict /^\d+(\.\d+)?$/ rejects it
+      expect(parseTransactionInput('1.2.3')).toBeNull();
+    });
+
+    it('returns null for a lone decimal point', () => {
+      expect(parseTransactionInput('.')).toBeNull();
     });
   });
 
@@ -78,6 +86,19 @@ describe('parseTransactionInput', () => {
 
     it('returns null for input with only special characters and numbers', () => {
       expect(parseTransactionInput('150!')).toBeNull();
+    });
+
+    it('returns null for input with trailing special character after a valid token (e.g. "cash150!")', () => {
+      // Previously the chunking regex ignored the "!" and returned a valid parse; now rejected
+      expect(parseTransactionInput('cash150!')).toBeNull();
+    });
+
+    it('returns null for input with embedded special characters (e.g. "ca$h150")', () => {
+      expect(parseTransactionInput('ca$h150')).toBeNull();
+    });
+
+    it('returns null for multi-dot amount with category (e.g. "cash1.2.3")', () => {
+      expect(parseTransactionInput('cash1.2.3')).toBeNull();
     });
   });
 
