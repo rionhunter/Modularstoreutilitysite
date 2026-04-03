@@ -341,14 +341,20 @@ export const CORE_MODULES: ModuleDefinition[] = [
 ];
 
 /**
- * Initialize the module registry with core modules
+ * Initialize the module registry with core modules.
+ * Safe to call multiple times — registers any missing core modules without
+ * duplicating ones already present (e.g. from a custom module registered first,
+ * or during Vite HMR re-execution).
  */
 export function initializeModuleRegistry(): void {
   const registry = ModuleRegistry.getInstance();
 
-  // Register all core modules
+  // Register only modules that are not yet in the registry,
+  // so newly added core modules are always picked up without warnings.
   CORE_MODULES.forEach(module => {
-    registry.register(module);
+    if (!registry.has(module.metadata.id)) {
+      registry.register(module);
+    }
   });
 
   console.log(`Initialized module registry with ${registry.count()} core modules`);

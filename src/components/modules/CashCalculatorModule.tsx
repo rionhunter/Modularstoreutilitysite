@@ -5,13 +5,7 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { DollarSign, RotateCcw, ArrowDown } from 'lucide-react';
-
-interface CashEntry {
-  denomination: number;
-  count: number;
-}
-
-const DENOMINATIONS = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05];
+import { DENOMINATIONS, calculateFloatBreakdown, calculateCashTotal } from '../../utils/cashCalculator';
 
 export function CashCalculatorModule() {
   const [float, setFloat] = useState<number>(0);
@@ -19,46 +13,10 @@ export function CashCalculatorModule() {
     Object.fromEntries(DENOMINATIONS.map(d => [d, 0]))
   );
 
-  const total = DENOMINATIONS.reduce(
-    (sum, denom) => sum + denom * (entries[denom] || 0),
-    0
-  );
-
+  const total = calculateCashTotal(entries);
   const endOfDay = total - float;
 
-  // Calculate optimal denominations to reach the float
-  const floatBreakdown = useMemo(() => {
-    if (float <= 0) return null;
-
-    const result: Record<number, number> = {};
-    let remaining = float;
-
-    // Step 1: Try to include at least 1 of each denomination (starting from smallest)
-    // This ensures we have change available
-    const reversedDenoms = [...DENOMINATIONS].reverse();
-    for (const denom of reversedDenoms) {
-      if (remaining >= denom) {
-        result[denom] = 1;
-        remaining = Math.round((remaining - denom) * 100) / 100;
-      }
-    }
-
-    // Step 2: Fill remaining amount with larger denominations (greedy approach)
-    for (const denom of DENOMINATIONS) {
-      if (remaining >= denom) {
-        const count = Math.floor(remaining / denom);
-        result[denom] = (result[denom] || 0) + count;
-        remaining = Math.round((remaining - denom * count) * 100) / 100;
-      }
-    }
-
-    // If we can't make exact change, return null
-    if (remaining > 0.001) {
-      return null;
-    }
-
-    return result;
-  }, [float]);
+  const floatBreakdown = useMemo(() => calculateFloatBreakdown(float), [float]);
 
   const handleCountChange = (denomination: number, value: string) => {
     const count = parseInt(value) || 0;
