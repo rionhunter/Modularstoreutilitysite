@@ -29,7 +29,7 @@ if _secret_key:
 elif DEBUG:
     SECRET_KEY = 'development-only-secret-key-change-me'
 else:
-    raise ValueError('DJANGO_SECRET_KEY must be set when DEBUG is False')
+    raise ValueError('DJANGO_SECRET_KEY environment variable must be set in production (when DEBUG is False)')
 
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
 CSRF_TRUSTED_ORIGINS = [

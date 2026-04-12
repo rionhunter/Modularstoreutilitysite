@@ -64,6 +64,15 @@ class StoreDataApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_rejects_missing_payload_field(self):
+        self.client.login(username='owner', password='secret123')
+        response = self.client.put(
+            reverse('store-data-detail', kwargs={'store_key': 'tasks'}),
+            data='{}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+
 
 class StoreDataCsrfTests(TestCase):
     def setUp(self):
