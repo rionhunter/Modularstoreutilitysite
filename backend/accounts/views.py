@@ -33,7 +33,9 @@ def signup(request):
     try:
         user = User.objects.create_user(username=username, password=password)
     except IntegrityError:
-        return JsonResponse({'error': 'Username already exists'}, status=409)
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Username already exists'}, status=409)
+        raise
     login(request, user)
     return JsonResponse({'id': user.id, 'username': user.username}, status=201)
 
