@@ -11,6 +11,7 @@ Set these in your hosting provider:
 - `DJANGO_SECRET_KEY` (required, secure random string)
 - `DJANGO_DEBUG` (`False` in production)
 - `DJANGO_ALLOWED_HOSTS` (comma-separated hostnames)
+- `DJANGO_CSRF_TRUSTED_ORIGINS` (comma-separated frontend origins, e.g. `https://app.example.com`)
 
 ### Install and run
 ```bash
@@ -57,6 +58,8 @@ Point frontend API calls to your backend URL, for example:
 If frontend and backend are on different domains:
 - Add CORS handling in Django
 - Configure secure cookie/session settings
+- Configure CSRF trusted origins (for example, `DJANGO_CSRF_TRUSTED_ORIGINS=https://your-frontend-domain`)
+- For Django session auth, fetch `GET /api/accounts/csrf/`, then send `X-CSRFToken` + `credentials: 'include'` on `POST`, `PUT`, `PATCH`, and `DELETE` requests
 
 ## 4) Production checklist
 

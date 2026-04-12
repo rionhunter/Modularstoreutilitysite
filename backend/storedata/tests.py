@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 
@@ -45,4 +45,36 @@ class StoreDataApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['items'], [])
 
-# Create your tests here.
+    def test_accepts_list_payload(self):
+        self.client.login(username='owner', password='secret123')
+        response = self.client.put(
+            reverse('store-data-detail', kwargs={'store_key': 'tasks'}),
+            data='{"payload":[{"task":"a"},{"task":"b"}]}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['payload'][0]['task'], 'a')
+
+    def test_rejects_overlong_store_key(self):
+        self.client.login(username='owner', password='secret123')
+        response = self.client.put(
+            reverse('store-data-detail', kwargs={'store_key': 'x' * 101}),
+            data='{"payload":{"ok":true}}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+class StoreDataCsrfTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='csrf_user', password='secret123')
+        self.client = Client(enforce_csrf_checks=True)
+        self.client.force_login(self.user)
+
+    def test_put_requires_csrf(self):
+        response = self.client.put(
+            reverse('store-data-detail', kwargs={'store_key': 'tasks'}),
+            data='{"payload":{"x":1}}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 403)

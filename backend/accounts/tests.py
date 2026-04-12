@@ -1,8 +1,10 @@
 import json
 
-from django.contrib.auth.models import User
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
 from django.urls import reverse
+
+User = get_user_model()
 
 
 class AccountsApiTests(TestCase):
@@ -46,4 +48,28 @@ class AccountsApiTests(TestCase):
         self.assertEqual(me_response.status_code, 200)
         self.assertFalse(me_response.json()['authenticated'])
 
-# Create your tests here.
+
+class AccountsCsrfTests(TestCase):
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=True)
+
+    def test_signup_requires_csrf_token(self):
+        response = self.client.post(
+            reverse('signup'),
+            data=json.dumps({'username': 'no_csrf_user', 'password': 'secret123'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_signup_succeeds_with_csrf_token(self):
+        csrf_response = self.client.get(reverse('csrf'))
+        self.assertEqual(csrf_response.status_code, 200)
+        token = csrf_response.json()['csrfToken']
+
+        response = self.client.post(
+            reverse('signup'),
+            data=json.dumps({'username': 'has_csrf_user', 'password': 'secret123'}),
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=token,
+        )
+        self.assertEqual(response.status_code, 201)

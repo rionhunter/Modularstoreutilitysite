@@ -1,9 +1,13 @@
 import json
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from django.views.decorators.http import require_GET, require_POST
+
+User = get_user_model()
 
 
 def _json_body(request):
@@ -26,10 +30,10 @@ def signup(request):
         return JsonResponse({'error': 'Username must be at least 3 characters'}, status=400)
     if len(password) < 6:
         return JsonResponse({'error': 'Password must be at least 6 characters'}, status=400)
-    if User.objects.filter(username=username).exists():
+    try:
+        user = User.objects.create_user(username=username, password=password)
+    except IntegrityError:
         return JsonResponse({'error': 'Username already exists'}, status=409)
-
-    user = User.objects.create_user(username=username, password=password)
     login(request, user)
     return JsonResponse({'id': user.id, 'username': user.username}, status=201)
 
@@ -71,4 +75,8 @@ def me(request):
         }
     )
 
-# Create your views here.
+
+@require_GET
+def csrf(request):
+    token = get_token(request)
+    return JsonResponse({'csrfToken': token})

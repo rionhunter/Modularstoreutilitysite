@@ -34,6 +34,8 @@ def list_store_data(request):
 def store_data_detail(request, store_key):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
+    if not isinstance(store_key, str) or len(store_key) > 100:
+        return JsonResponse({'error': 'Invalid store key'}, status=400)
 
     if request.method == 'GET':
         try:
@@ -53,10 +55,10 @@ def store_data_detail(request, store_key):
             data = _json_body(request)
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+        if not isinstance(data, dict):
+            return JsonResponse({'error': 'Request body must be a JSON object'}, status=400)
 
         payload = data.get('payload', {})
-        if not isinstance(payload, dict):
-            return JsonResponse({'error': 'Payload must be a JSON object'}, status=400)
 
         record, _ = StoreData.objects.update_or_create(
             user=request.user,
