@@ -368,7 +368,7 @@ function App() {
         ) : currentView === 'layout' ? (
           <StoreLayoutPage />
         ) : currentView === 'stock-take' ? (
-          <StockTakePage />
+          <StockTakePage onNavigate={(view) => setCurrentView(view)} />
         ) : currentView === 'contacts' ? (
           <ContactsPage />
         ) : currentView === 'documents' ? (
