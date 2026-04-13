@@ -10,7 +10,7 @@ import { Checkbox } from '../ui/checkbox';
 import { ScrollArea } from '../ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Package, Plus, Edit, Trash2, Star } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { PackageDeal, DEFAULT_PACKAGES } from '../../types/packages';
 
 export function PackageDealsAdmin() {

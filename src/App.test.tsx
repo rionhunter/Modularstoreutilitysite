@@ -12,10 +12,6 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock the heavy page components so we can test navigation without full rendering
-vi.mock('./components/BentoDashboard', () => ({
-  BentoDashboard: () => <div data-testid="bento-dashboard">BentoDashboard</div>,
-}));
-
 vi.mock('./components/ColumnarDashboard', () => ({
   ColumnarDashboard: () => <div data-testid="columnar-dashboard">ColumnarDashboard</div>,
 }));

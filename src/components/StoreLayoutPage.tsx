@@ -27,7 +27,7 @@ import {
   Image as ImageIcon,
   RotateCw
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { LayoutElement, Bay, BaySlot, SlotType, StoreLayout } from '../types/modules';
 
 const CELL_SIZE = 40;

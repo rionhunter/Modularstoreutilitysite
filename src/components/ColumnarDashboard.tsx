@@ -1,14 +1,7 @@
 import { useState, useEffect, cloneElement, isValidElement } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Module, ModuleType } from '../types/modules';
-import { CashCalculatorModule } from './modules/CashCalculatorModule';
-import { TransactionCalculatorModule } from './modules/TransactionCalculatorModule';
-import { TaskTrackerModule } from './modules/TaskTrackerModule';
-import { QuoteSystemModule } from './modules/QuoteSystemModule';
-import { StockTrackerModule } from './modules/StockTrackerModule';
-import { BalanceCalculatorModule } from './modules/BalanceCalculatorModule';
-import { CalculatorModule } from './modules/CalculatorModule';
-import { SpecialsModule } from './modules/SpecialsModule';
+import { renderModuleById } from './modules/renderModuleById';
 import { Calculator, Package, ListTodo, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 
 interface ColumnarDashboardProps {
@@ -193,28 +186,7 @@ export function ColumnarDashboard({ modules }: ColumnarDashboardProps) {
     });
   };
 
-  const renderModule = (moduleId: ModuleType) => {
-    switch (moduleId) {
-      case 'cash-calculator':
-        return <CashCalculatorModule />;
-      case 'transaction-calculator':
-        return <TransactionCalculatorModule />;
-      case 'task-tracker':
-        return <TaskTrackerModule />;
-      case 'quote-system':
-        return <QuoteSystemModule />;
-      case 'stock-tracker':
-        return <StockTrackerModule />;
-      case 'balance-calculator':
-        return <BalanceCalculatorModule />;
-      case 'calculator':
-        return <CalculatorModule />;
-      case 'specials':
-        return <SpecialsModule />;
-      default:
-        return null;
-    }
-  };
+  const renderModule = (moduleId: ModuleType) => renderModuleById(moduleId);
 
   const renderColumn = (
     title: string,
