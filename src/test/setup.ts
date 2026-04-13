@@ -32,3 +32,15 @@ beforeEach(() => {
   localStorageMock.clear();
   sessionStorageMock.clear();
 });
+
+// ResizeObserver is not available in jsdom; stub it so Radix UI ScrollArea works.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  configurable: true,
+  value: ResizeObserverStub,
+});

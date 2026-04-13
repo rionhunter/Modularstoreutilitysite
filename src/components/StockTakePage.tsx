@@ -57,7 +57,11 @@ const DEFAULT_CONTROL_BARCODES: Record<ControlCode, string> = {
   MARK_DIRTY: 'CTRL_MARK_DIRTY',
 };
 
-export function StockTakePage() {
+interface StockTakePageProps {
+  onNavigate?: (view: 'layout') => void;
+}
+
+export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
   const [bays, setBays] = useState<BayLocation[]>([]);
   const [selectedBayIds, setSelectedBayIds] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
@@ -663,11 +667,20 @@ export function StockTakePage() {
       return;
     }
 
-    // If slot is a tray and we're not in tray mode, enter tray mode
-    if (currentSlot?.type === 'tray' && !inTrayMode && currentSlot.traySlots) {
+    // If slot is a tray and we're not in tray mode, enter tray mode.
+    // Use local variables so the product recorded below gets the correct tray info
+    // even though the setInTrayMode state update is async.
+    const enteringTrayMode = currentSlot?.type === 'tray' && !inTrayMode && !!currentSlot.traySlots;
+    if (enteringTrayMode) {
       setInTrayMode(true);
       setCurrentTray(0);
     }
+
+    // Compute the effective tray state for this scan synchronously:
+    // - Not in tray mode at all → undefined
+    // - Already in tray mode   → use currentTray
+    // - Just entering tray mode → slot 0
+    const effectiveTray = enteringTrayMode ? 0 : inTrayMode ? currentTray : undefined;
 
     // Record the scanned product
     const scannedProduct: ScannedProduct = {
@@ -676,7 +689,7 @@ export function StockTakePage() {
       bayName: currentBay.name,
       shelf: currentShelf,
       column: currentColumn,
-      tray: inTrayMode ? currentTray : undefined,
+      tray: effectiveTray,
       drawer: inDrawerMode ? { row: currentDrawerRow, col: currentDrawerCol } : undefined,
       timestamp: Date.now(),
     };
@@ -687,7 +700,7 @@ export function StockTakePage() {
     // Show visual feedback
     const locationStr = inDrawerMode 
       ? `${currentBay.name} Drawer R${currentDrawerRow + 1}C${currentDrawerCol + 1}`
-      : `${currentBay.name} S${currentShelf + 1}C${currentColumn + 1}${inTrayMode ? `T${currentTray + 1}` : ''}`;
+      : `${currentBay.name} S${currentShelf + 1}C${currentColumn + 1}${effectiveTray !== undefined ? `T${effectiveTray + 1}` : ''}`;
     toast.success(`Scanned: ${barcode.substring(0, 20)} at ${locationStr}`);
 
     // Move to next position
@@ -894,7 +907,17 @@ export function StockTakePage() {
               {bays.length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-muted-foreground">
-                    No bays configured. Create bays in the Store Layout page first.
+                    <p>No bays configured. Create bays in the Store Layout page first.</p>
+                    {onNavigate && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => onNavigate('layout')}
+                      >
+                        Go to Store Layout
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
