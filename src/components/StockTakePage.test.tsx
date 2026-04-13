@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, within, act, waitFor } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StockTakePage } from './StockTakePage';
 import type { Bay, BaySlot } from '../types/modules';
@@ -84,17 +84,32 @@ async function renderInScanningMode(bayOverride: BayOverride = {}) {
 // ── Test Suite ────────────────────────────────────────────────────────────────
 
 describe('StockTakePage', () => {
+  const originalCreateObjectURL = URL.createObjectURL;
+  const originalRevokeObjectURL = URL.revokeObjectURL;
+
   beforeEach(() => {
     vi.clearAllMocks();
     // window.confirm is needed for reset flow
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    // URL.createObjectURL needed for export
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake');
-    vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
+    // URL.createObjectURL / revokeObjectURL are often undefined in jsdom
+    URL.createObjectURL = vi.fn(() => 'blob:fake');
+    URL.revokeObjectURL = vi.fn(() => undefined);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+
+    if (originalCreateObjectURL) {
+      URL.createObjectURL = originalCreateObjectURL;
+    } else {
+      delete (URL as typeof URL & { createObjectURL?: typeof URL.createObjectURL }).createObjectURL;
+    }
+
+    if (originalRevokeObjectURL) {
+      URL.revokeObjectURL = originalRevokeObjectURL;
+    } else {
+      delete (URL as typeof URL & { revokeObjectURL?: typeof URL.revokeObjectURL }).revokeObjectURL;
+    }
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
