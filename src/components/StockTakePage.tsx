@@ -668,7 +668,7 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
     }
 
     // If slot is a tray and we're not in tray mode, enter tray mode.
-    // Use a local variable so the product recorded below gets the correct tray info
+    // Use local variables so the product recorded below gets the correct tray info
     // even though the setInTrayMode state update is async.
     const enteringTrayMode = currentSlot?.type === 'tray' && !inTrayMode && !!currentSlot.traySlots;
     if (enteringTrayMode) {
@@ -676,8 +676,11 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
       setCurrentTray(0);
     }
 
-    const effectiveInTrayMode = inTrayMode || enteringTrayMode;
-    const effectiveTray = enteringTrayMode ? 0 : currentTray;
+    // Compute the effective tray state for this scan synchronously:
+    // - Not in tray mode at all → undefined
+    // - Already in tray mode   → use currentTray
+    // - Just entering tray mode → slot 0
+    const effectiveTray = enteringTrayMode ? 0 : inTrayMode ? currentTray : undefined;
 
     // Record the scanned product
     const scannedProduct: ScannedProduct = {
@@ -686,7 +689,7 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
       bayName: currentBay.name,
       shelf: currentShelf,
       column: currentColumn,
-      tray: effectiveInTrayMode ? effectiveTray : undefined,
+      tray: effectiveTray,
       drawer: inDrawerMode ? { row: currentDrawerRow, col: currentDrawerCol } : undefined,
       timestamp: Date.now(),
     };
@@ -697,7 +700,7 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
     // Show visual feedback
     const locationStr = inDrawerMode 
       ? `${currentBay.name} Drawer R${currentDrawerRow + 1}C${currentDrawerCol + 1}`
-      : `${currentBay.name} S${currentShelf + 1}C${currentColumn + 1}${effectiveInTrayMode ? `T${effectiveTray + 1}` : ''}`;
+      : `${currentBay.name} S${currentShelf + 1}C${currentColumn + 1}${effectiveTray !== undefined ? `T${effectiveTray + 1}` : ''}`;
     toast.success(`Scanned: ${barcode.substring(0, 20)} at ${locationStr}`);
 
     // Move to next position

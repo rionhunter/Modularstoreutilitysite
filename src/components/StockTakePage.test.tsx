@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { StockTakePage } from './StockTakePage';
 import type { Bay, BaySlot } from '../types/modules';
 
-// ── Mock sonner toast (aliased from sonner@2.0.3 in vite.config.ts) ──────────
+// ── Mock sonner toast (aliased in vite.config.ts) ────────────────────────────
 // Use vi.hoisted so the variable is available inside the vi.mock factory (which is hoisted)
 const mockToast = vi.hoisted(() =>
   Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() })
