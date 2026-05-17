@@ -943,13 +943,12 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
                   >
                     <CardHeader className="py-3">
                       <div className="flex items-center gap-3">
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Checkbox 
-                            checked={selectedBayIds.has(bay.id)}
-                            onCheckedChange={() => toggleBaySelection(bay.id)}
-                            aria-label={`Select ${bay.name}`}
-                          />
-                        </div>
+                        <Checkbox 
+                          checked={selectedBayIds.has(bay.id)}
+                          aria-hidden="true"
+                          tabIndex={-1}
+                          className="pointer-events-none"
+                        />
                         <Box className="h-4 w-4" />
                         <div className="flex-1">
                           <CardTitle className="text-base">{bay.name}</CardTitle>

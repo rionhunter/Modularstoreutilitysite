@@ -799,9 +799,9 @@ export function StoreLayoutPage() {
                       setSelectedElement(element);
                     }
                   }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${element.type} ${element.name}`}
+                  role={toolMode === 'select' ? 'button' : undefined}
+                  tabIndex={toolMode === 'select' ? 0 : -1}
+                  aria-label={toolMode === 'select' ? `${element.type} ${element.name}` : undefined}
                 >
                   <div className="p-1 flex flex-col items-center justify-center h-full text-center overflow-hidden relative">
                     {getElementIcon(element)}
@@ -1206,7 +1206,7 @@ export function StoreLayoutPage() {
                         className={`border-2 rounded p-1.5 cursor-pointer transition-all ${getSlotColor(slot.type, isSelected)}`}
                         onClick={() => toggleSlotSelection(slot.row, slot.col)}
                         aria-pressed={isSelected}
-                        aria-label={`Toggle slot shelf ${slot.row + 1} column ${slot.col + 1}`}
+                        aria-label={`Toggle ${slot.type} slot shelf ${slot.row + 1} column ${slot.col + 1}`}
                       >
                         <div className="text-xs mb-0.5">
                           S{slot.row + 1}C{slot.col + 1}

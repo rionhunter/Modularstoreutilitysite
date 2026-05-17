@@ -36,7 +36,7 @@ describe('StoreLayoutPage', () => {
     const canvas = screen.getByLabelText(/store layout canvas/i);
     fireEvent.click(canvas, { clientX: 20, clientY: 20 });
 
-    const slotButton = await screen.findByRole('button', { name: /toggle slot shelf 1 column 1/i });
+    const slotButton = await screen.findByRole('button', { name: /toggle single slot shelf 1 column 1/i });
     expect(slotButton).toHaveAttribute('aria-pressed', 'false');
 
     slotButton.focus();
