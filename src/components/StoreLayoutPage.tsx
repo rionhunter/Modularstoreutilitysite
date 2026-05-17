@@ -4,7 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
@@ -777,6 +777,7 @@ export function StoreLayoutPage() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
+              aria-label="Store layout canvas"
             >
               {layout.map(element => (
                 <div
@@ -792,6 +793,15 @@ export function StoreLayoutPage() {
                   }}
                   onClick={(e) => handleElementClick(element, e)}
                   onMouseDown={(e) => handleMouseDown(element, e)}
+                  onKeyDown={(e) => {
+                    if (toolMode === 'select' && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      setSelectedElement(element);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${element.type} ${element.name}`}
                 >
                   <div className="p-1 flex flex-col items-center justify-center h-full text-center overflow-hidden relative">
                     {getElementIcon(element)}
@@ -865,6 +875,7 @@ export function StoreLayoutPage() {
                   variant="destructive"
                   size="sm"
                   onClick={() => deleteElement(selectedElement.id)}
+                  aria-label={`Delete ${selectedElement.name}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -909,6 +920,7 @@ export function StoreLayoutPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => editBay(bay)}
+                          aria-label={`Edit ${bay.name}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -970,6 +982,9 @@ export function StoreLayoutPage() {
               <Grid3x3 className="h-5 w-5" />
               Configure Bay
             </DialogTitle>
+            <DialogDescription>
+              Configure bay size, display options, slot types, and drawer settings.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 pt-4">
             <div>
@@ -1147,6 +1162,7 @@ export function StoreLayoutPage() {
                       size="sm"
                       className="h-7 w-7 p-0"
                       onClick={() => setBulkTrayCount(Math.max(1, bulkTrayCount - 1))}
+                      aria-label="Decrease tray slot count"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -1156,6 +1172,7 @@ export function StoreLayoutPage() {
                       size="sm"
                       className="h-7 w-7 p-0"
                       onClick={() => setBulkTrayCount(Math.min(20, bulkTrayCount + 1))}
+                      aria-label="Increase tray slot count"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -1183,10 +1200,13 @@ export function StoreLayoutPage() {
                     const slotKey = `${slot.row}-${slot.col}`;
                     const isSelected = selectedSlots.has(slotKey);
                     return (
-                      <div
+                      <button
                         key={slotKey}
+                        type="button"
                         className={`border-2 rounded p-1.5 cursor-pointer transition-all ${getSlotColor(slot.type, isSelected)}`}
                         onClick={() => toggleSlotSelection(slot.row, slot.col)}
+                        aria-pressed={isSelected}
+                        aria-label={`Toggle slot shelf ${slot.row + 1} column ${slot.col + 1}`}
                       >
                         <div className="text-xs mb-0.5">
                           S{slot.row + 1}C{slot.col + 1}
@@ -1197,7 +1217,7 @@ export function StoreLayoutPage() {
                           </span>
                           {isSelected && <Check className="h-3 w-3" />}
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -1269,6 +1289,9 @@ export function StoreLayoutPage() {
               <Settings className="h-5 w-5" />
               Layout Settings
             </DialogTitle>
+            <DialogDescription>
+              Adjust grid and physical layout dimensions for store mapping.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>

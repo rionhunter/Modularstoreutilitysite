@@ -208,6 +208,20 @@ describe('StockTakePage', () => {
       expect(screen.getByRole('checkbox')).not.toBeChecked();
     });
 
+    it('supports keyboard selection with Enter on bay cards', async () => {
+      const bay = makeBay({ name: 'Keyboard Bay' });
+      seedBays([bay]);
+      const user = userEvent.setup();
+      render(<StockTakePage />);
+      await screen.findByText('Keyboard Bay');
+
+      const bayToggle = screen.getByRole('button', { name: /toggle bay selection for keyboard bay/i });
+      bayToggle.focus();
+      await user.keyboard('{Enter}');
+
+      expect(screen.getByRole('checkbox')).toBeChecked();
+    });
+
     it('saves selected bays to localStorage', async () => {
       const bay = makeBay({ id: 'bay-x', name: 'Bay X' });
       seedBays([bay]);
@@ -534,6 +548,13 @@ describe('StockTakePage', () => {
       // No customisation yet — reset button should NOT be present in dialog
       const dialog = screen.getByRole('dialog');
       expect(within(dialog).queryByRole('button', { name: /reset to defaults/i })).not.toBeInTheDocument();
+    });
+
+    it('includes settings dialog description text for accessibility', async () => {
+      render(<StockTakePage />);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: /customize/i }));
+      expect(screen.getByText(/Set or reset control barcodes used for stocktake actions/i)).toBeInTheDocument();
     });
   });
 
