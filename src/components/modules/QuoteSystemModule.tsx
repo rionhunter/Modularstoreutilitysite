@@ -5,7 +5,7 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { FileText, Plus, Trash2, Eye, Download } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface QuoteItem {
   id: string;

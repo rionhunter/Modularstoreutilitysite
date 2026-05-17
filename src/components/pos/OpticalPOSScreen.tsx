@@ -27,7 +27,7 @@ import {
   Star,
   Info
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { PackageDeal, DEFAULT_PACKAGES } from '../../types/packages';
 import { OpticalSale, OpticalPrescription, OpticalFrame, LensSpecification, PatientInfo } from '../../types/sales';
 

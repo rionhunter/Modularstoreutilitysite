@@ -5,7 +5,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import { Download, Upload, FileJson, GripVertical } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Contact } from './ContactsPage';
 
 interface ModuleBrowserProps {

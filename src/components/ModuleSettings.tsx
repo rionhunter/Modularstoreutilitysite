@@ -7,7 +7,7 @@ import { Module } from '../types/modules';
 import { Settings, Download, Upload, FileJson } from 'lucide-react';
 import { ModuleBrowser } from './ModuleBrowser';
 import { getModuleRegistry } from '../modules/registry';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Contact } from './ContactsPage';
 
 interface ModuleSettingsProps {

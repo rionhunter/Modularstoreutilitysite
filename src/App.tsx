@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ModuleSettings } from './components/ModuleSettings';
-import { BentoDashboard } from './components/BentoDashboard';
 import { ColumnarDashboard } from './components/ColumnarDashboard';
 import { StoreLayoutPage } from './components/StoreLayoutPage';
 import { StockTakePage } from './components/StockTakePage';
@@ -11,13 +10,12 @@ import { DocumentsPage } from './components/DocumentsPage';
 import { AuthPage } from './components/AuthPage';
 import { AdminPortal } from './components/AdminPortal';
 import { OpticalSalesPage } from './components/sales/OpticalSalesPage';
-import { OpticalPOSScreen } from './components/pos/OpticalPOSScreen';
 import { Module } from './types/modules';
-import { Store, LayoutDashboard, LayoutGrid, Scan, Users, FileText, LogOut, Settings, ShoppingCart } from 'lucide-react';
+import { Store, LayoutDashboard, LayoutGrid, Scan, Users, FileText, LogOut, Settings, ShoppingCart, LucideIcon } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/sonner';
 import { initializeModuleRegistry } from './modules/registry';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { getAdminConfig, applyBranding } from './utils/adminConfig';
 
 const DEFAULT_MODULES: Module[] = [
@@ -80,6 +78,22 @@ const DEFAULT_MODULES: Module[] = [
 ];
 
 type View = 'dashboard' | 'layout' | 'stock-take' | 'contacts' | 'documents' | 'admin' | 'sales';
+
+interface NavItem {
+  view: View;
+  label: string;
+  shortLabel: string;
+  icon: LucideIcon;
+  featureKey?: keyof ReturnType<typeof getAdminConfig>['features'];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { view: 'layout',    label: 'Store Layout', shortLabel: 'Layout',     icon: LayoutGrid,    featureKey: 'storeLayout' },
+  { view: 'stock-take',label: 'Stock Take',   shortLabel: 'Stock Take', icon: Scan,          featureKey: 'stockTake'   },
+  { view: 'sales',     label: 'Sales',        shortLabel: 'Sales',      icon: ShoppingCart,  featureKey: 'sales'       },
+  { view: 'contacts',  label: 'Contacts',     shortLabel: 'Contacts',   icon: Users,         featureKey: 'contacts'    },
+  { view: 'documents', label: 'Documents',    shortLabel: 'Docs',       icon: FileText,      featureKey: 'documents'   },
+];
 
 // Initialize module registry on app load
 initializeModuleRegistry();
@@ -188,55 +202,18 @@ function App() {
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </Button>
-              {adminConfig.features.storeLayout && (
-                <Button
-                  variant={currentView === 'layout' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentView('layout')}
-                >
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  Store Layout
-                </Button>
-              )}
-              {adminConfig.features.stockTake && (
-                <Button
-                  variant={currentView === 'stock-take' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentView('stock-take')}
-                >
-                  <Scan className="h-4 w-4 mr-2" />
-                  Stock Take
-                </Button>
-              )}
-              {adminConfig.features.sales && (
-                <Button
-                  variant={currentView === 'sales' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentView('sales')}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Sales
-                </Button>
-              )}
-              {adminConfig.features.contacts && (
-                <Button
-                  variant={currentView === 'contacts' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentView('contacts')}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Contacts
-                </Button>
-              )}
-              {adminConfig.features.documents && (
-                <Button
-                  variant={currentView === 'documents' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentView('documents')}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Documents
-                </Button>
+              {NAV_ITEMS.map(({ view, label, icon: Icon, featureKey }) =>
+                (!featureKey || adminConfig.features[featureKey]) && (
+                  <Button
+                    key={view}
+                    variant={currentView === view ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCurrentView(view)}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {label}
+                  </Button>
+                )
               )}
             </nav>
           </div>
@@ -274,60 +251,19 @@ function App() {
               <LayoutDashboard className="h-4 w-4 mr-2" />
               Dashboard
             </Button>
-            {adminConfig.features.storeLayout && (
-              <Button
-                variant={currentView === 'layout' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCurrentView('layout')}
-                className="flex-1 min-w-fit"
-              >
-                <LayoutGrid className="h-4 w-4 mr-2" />
-                Layout
-              </Button>
-            )}
-            {adminConfig.features.stockTake && (
-              <Button
-                variant={currentView === 'stock-take' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCurrentView('stock-take')}
-                className="flex-1 min-w-fit"
-              >
-                <Scan className="h-4 w-4 mr-2" />
-                Stock Take
-              </Button>
-            )}
-            {adminConfig.features.sales && (
-              <Button
-                variant={currentView === 'sales' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCurrentView('sales')}
-                className="flex-1 min-w-fit"
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Sales
-              </Button>
-            )}
-            {adminConfig.features.contacts && (
-              <Button
-                variant={currentView === 'contacts' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCurrentView('contacts')}
-                className="flex-1 min-w-fit"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Contacts
-              </Button>
-            )}
-            {adminConfig.features.documents && (
-              <Button
-                variant={currentView === 'documents' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCurrentView('documents')}
-                className="flex-1 min-w-fit"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Docs
-              </Button>
+            {NAV_ITEMS.map(({ view, shortLabel, icon: Icon, featureKey }) =>
+              (!featureKey || adminConfig.features[featureKey]) && (
+                <Button
+                  key={view}
+                  variant={currentView === view ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCurrentView(view)}
+                  className="flex-1 min-w-fit"
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {shortLabel}
+                </Button>
+              )
             )}
             <Button
               variant="outline"

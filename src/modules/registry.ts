@@ -356,8 +356,6 @@ export function initializeModuleRegistry(): void {
       registry.register(module);
     }
   });
-
-  console.log(`Initialized module registry with ${registry.count()} core modules`);
 }
 
 /**

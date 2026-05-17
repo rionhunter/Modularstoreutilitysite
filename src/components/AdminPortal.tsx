@@ -25,14 +25,13 @@ import {
   FileJson,
   LayoutDashboard
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { getAdminConfig, saveAdminConfig, applyBranding } from '../utils/adminConfig';
 import { AdminConfig, DEFAULT_BRANDING, DEFAULT_FEATURES } from '../types/admin';
 import { PackageDealsAdmin } from './admin/PackageDealsAdmin';
 import { Module } from '../types/modules';
 import { ModuleBrowser } from './ModuleBrowser';
 import { getModuleRegistry } from '../modules/registry';
-import { Contact } from './ContactsPage';
 
 export function AdminPortal({ modules, onModuleUpdate }: { modules: Module[]; onModuleUpdate: (modules: Module[]) => void }) {
   const [config, setConfig] = useState<AdminConfig>(getAdminConfig());
