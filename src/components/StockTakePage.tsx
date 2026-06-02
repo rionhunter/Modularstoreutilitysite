@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { ScrollArea } from './ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { 
   Box,
   Scan,
@@ -174,6 +174,13 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
       newSelected.add(bayId);
     }
     setSelectedBayIds(newSelected);
+  };
+
+  const handleBayCardKeyDown = (event: React.KeyboardEvent, bayId: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleBaySelection(bayId);
+    }
   };
 
   const findNextActiveSlot = (
@@ -928,15 +935,20 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
                       selectedBayIds.has(bay.id) ? 'ring-2 ring-primary bg-primary/5' : ''
                     }`}
                     onClick={() => toggleBaySelection(bay.id)}
+                    onKeyDown={(event) => handleBayCardKeyDown(event, bay.id)}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selectedBayIds.has(bay.id)}
+                    aria-label={`Toggle bay selection for ${bay.name}`}
                   >
                     <CardHeader className="py-3">
                       <div className="flex items-center gap-3">
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Checkbox 
-                            checked={selectedBayIds.has(bay.id)}
-                            onCheckedChange={() => toggleBaySelection(bay.id)}
-                          />
-                        </div>
+                        <Checkbox 
+                          checked={selectedBayIds.has(bay.id)}
+                          aria-hidden="true"
+                          tabIndex={-1}
+                          className="pointer-events-none"
+                        />
                         <Box className="h-4 w-4" />
                         <div className="flex-1">
                           <CardTitle className="text-base">{bay.name}</CardTitle>
@@ -978,6 +990,9 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
                   <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Customize Control Barcodes</DialogTitle>
+                      <DialogDescription>
+                        Set or reset control barcodes used for stocktake actions.
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <p className="text-sm text-muted-foreground">
@@ -1240,6 +1255,7 @@ export function StockTakePage({ onNavigate }: StockTakePageProps = {}) {
                     variant="outline" 
                     onClick={() => setIsFullScreen(!isFullScreen)}
                     size="lg"
+                    aria-label={isFullScreen ? 'Exit full screen mode' : 'Enter full screen mode'}
                   >
                     {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
                   </Button>

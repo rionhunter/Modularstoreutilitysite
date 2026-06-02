@@ -190,10 +190,10 @@ describe('StockTakePage', () => {
       render(<StockTakePage />);
       await screen.findByText('Test Bay');
 
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).not.toBeChecked();
+      const bayToggle = screen.getByRole('button', { name: /toggle bay selection for test bay/i });
+      expect(bayToggle).toHaveAttribute('aria-pressed', 'false');
       await user.click(screen.getByText('Test Bay'));
-      expect(screen.getByRole('checkbox')).toBeChecked();
+      expect(bayToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('deselects a bay when clicked again', async () => {
@@ -205,7 +205,21 @@ describe('StockTakePage', () => {
       const bayCard = screen.getByText('Bay Alpha');
       await user.click(bayCard);
       await user.click(bayCard);
-      expect(screen.getByRole('checkbox')).not.toBeChecked();
+      expect(screen.getByRole('button', { name: /toggle bay selection for bay alpha/i })).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('supports keyboard selection with Enter on bay cards', async () => {
+      const bay = makeBay({ name: 'Keyboard Bay' });
+      seedBays([bay]);
+      const user = userEvent.setup();
+      render(<StockTakePage />);
+      await screen.findByText('Keyboard Bay');
+
+      const bayToggle = screen.getByRole('button', { name: /toggle bay selection for keyboard bay/i });
+      bayToggle.focus();
+      await user.keyboard('{Enter}');
+
+      expect(bayToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('saves selected bays to localStorage', async () => {
@@ -225,7 +239,7 @@ describe('StockTakePage', () => {
       seedSelectedBays(['bay-r']);
       render(<StockTakePage />);
       await screen.findByText('Restored Bay');
-      expect(screen.getByRole('checkbox')).toBeChecked();
+      expect(screen.getByRole('button', { name: /toggle bay selection for restored bay/i })).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('shows start scanning button when bays are selected', async () => {
@@ -534,6 +548,13 @@ describe('StockTakePage', () => {
       // No customisation yet — reset button should NOT be present in dialog
       const dialog = screen.getByRole('dialog');
       expect(within(dialog).queryByRole('button', { name: /reset to defaults/i })).not.toBeInTheDocument();
+    });
+
+    it('includes settings dialog description text for accessibility', async () => {
+      render(<StockTakePage />);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: /customize/i }));
+      expect(screen.getByText(/Set or reset control barcodes used for stocktake actions/i)).toBeInTheDocument();
     });
   });
 
